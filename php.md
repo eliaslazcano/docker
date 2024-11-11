@@ -93,3 +93,27 @@ wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtm
 dpkg -i wkhtmltox_0.12.6.1-3.bookworm_amd64.deb
 apt-get install -f
 ```
+
+#### QPDF
+
+Consegue rápidamente unir documento e também comprimir, sem perder assinaturas, mas a compressão é muito fraca.
+
+```bash
+apt-get install qpdf
+```
+
+#### Poppler Utils
+
+Consegue verificar se o documento PDF possui alguma assinatura digital
+
+```bash
+apt install poppler-utils
+```
+
+#### ghostscript
+
+Comprime o documento PDF reduzindo o DPI das fotos, mas a custo de perder a assinatura digital.
+
+```bash
+apt install ghostscript poppler-utils
+```
