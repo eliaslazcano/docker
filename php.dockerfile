@@ -2,7 +2,7 @@ FROM php:8.3.13-apache
 
 # Atualiza a lista de pacotes e instala dependências
 RUN apt-get update -yqq && \
-    apt-get install -yqq libpq-dev zlib1g-dev libzip-dev libpng-dev \
+    apt-get install -yqq libicu-dev libpq-dev zlib1g-dev libzip-dev libpng-dev \
     libjpeg62-turbo-dev libwebp-dev libfreetype6-dev libgd-dev exiftool locales
 
 # Configuração da localidade
@@ -22,7 +22,10 @@ RUN a2enmod rewrite
 RUN docker-php-ext-configure zip && \
     docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
     docker-php-ext-configure exif && \
-    docker-php-ext-install -j$(nproc) opcache pdo pdo_mysql zip gd exif
+    docker-php-ext-configure intl && \
+    docker-php-ext-install -j$(nproc) opcache pdo pdo_mysql zip gd exif intl
+
+RUN echo 'intl.default_locale = "pt_BR"' >> /usr/local/etc/php/conf.d/docker-php-ext-intl.ini
 
 RUN apt-get clean
 
