@@ -9,19 +9,19 @@
 #### Construa a imagem partir do dockerfile
 
 ```bash
-docker build --pull --rm -f "php.dockerfile" -t eliaslazcano/php:8.3.13 "."
+docker build --pull --rm -f "php.dockerfile" -t eliaslazcano/php:8.4.6-apache "."
 ```
 
 > Entenda: `docker build --pull --rm -f "<nome_do_seu_arquivo>" -t <nome_da_imagem> "<caminho_do_arquivo>"`
 >
-> Se quiser enviar a imagem para o repositório do Dockerhub: `docker push eliaslazcano/php:8.3.13`
+> Se quiser enviar a imagem para o repositório do Dockerhub: `docker push eliaslazcano/php:8.4.6-apache`
 
 ## Preparativos antes de criar o container
 
 #### Definir um local do disco para manter os arquivos .ini localmente (na máquina host)
 
 ```bash
-docker run --rm -v ${PWD}/php:/backup eliaslazcano/php:8.3.13 sh -c "cp -ra /usr/local/etc/php/* /backup"
+docker run --rm -v ${PWD}/php:/backup eliaslazcano/php:8.4.6-apache sh -c "cp -ra /usr/local/etc/php/* /backup"
 ```
 
 #### Gerar o php.ini sem os comentários
@@ -41,7 +41,7 @@ Get-Content php/php.ini-production | Where-Object { $_ -notmatch '^\s*(;|$)' } |
 ## Criando o container
 
 ```bash
-docker run -d --name=webapp --restart=always -p 8080:80 -v ${PWD}/php:/usr/local/etc/php -v ${PWD}/www:/var/www/html eliaslazcano/php:8.3.13
+docker run -d --name=webapp --restart=always -p 8080:80 -v ${PWD}/php:/usr/local/etc/php -v ${PWD}/www:/var/www/html eliaslazcano/php:8.4.6-apache
 ```
 
 > Você pode expor a porta **80** para ver o website, mas recomendo usar o Nginx para proxy reverso.
@@ -59,6 +59,7 @@ Analise o arquivo principal `php.ini` e revise os valores como estão sendo most
 max_execution_time = 180
 memory_limit = 256M
 post_max_size = 256M
+upload_max_filesize = 256M
 ```
 
 #### Habilite o Jit
@@ -68,7 +69,7 @@ Ele torna o PHP mais performático, principalmente quando o código lida com mui
 Inclua alguns valores no arquivo .ini (do Opcache) dessa forma para habilitar o compilador JIT:
 
 ```bash
-docker run --rm -v ${PWD}/php:/usr/local/etc/php eliaslazcano/php:8.3.13 sh -c "printf 'opcache.enable=1\nopcache.enable_cli=1\nopcache.jit=1235\nopcache.jit_buffer_size=64M\nopcache.memory_consumption=128' >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini"
+docker run --rm -v ${PWD}/php:/usr/local/etc/php eliaslazcano/php:8.4.6-apache sh -c "printf 'opcache.enable=1\nopcache.enable_cli=1\nopcache.jit=1235\nopcache.jit_buffer_size=64M\nopcache.memory_consumption=128' >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini"
 ```
 
 Pra você entender, o comando aplicou essa configuração no final do arquivo (ajuste como desejar):
