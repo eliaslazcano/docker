@@ -1,0 +1,117 @@
+services:
+  mariadb:
+    container_name: ${DB_HOSTNAME}
+    image: mariadb:11
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mariadb:/etc/mysql/mariadb.conf.d
+      - mariadb_data:/var/lib/mysql
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+    networks:
+      - global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+  php-fpm:
+    container_name: php-fpm
+    build: ./php
+    restart: on-failure
+    depends_on:
+      -  mariadb
+    volumes:
+      - ./sites:/var/www/html
+      - ./php:/usr/local/etc/php
+    networks:
+      - global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+  nginx:
+    container_name: nginx
+    image: nginx:stable
+    restart: always
+    depends_on:
+      -  php-fpm
+    ports:
+      -  "80:80"
+      -  "443:443"
+    volumes:
+      -  ./nginx:/etc/nginx
+      -  ./sites:/var/www/html
+      -  certbot-etc:/etc/letsencrypt
+      -  certbot-var:/var/lib/letsencrypt
+      -  certbot-html:/usr/share/nginx/html
+    networks:
+      -  global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+  
+  certbot:
+    container_name: certbot
+    image: certbot/certbot
+    restart: on-failure
+    entrypoint: ""
+    command: >
+      sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/html; sleep 12h & wait $${!}; done;'
+    depends_on:
+      -  nginx
+    volumes:
+      -  certbot-etc:/etc/letsencrypt
+      -  certbot-var:/var/lib/letsencrypt
+      -  certbot-html:/var/www/html
+    networks:
+      -  global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin:latest
+    restart: on-failure
+    depends_on:
+      -  mariadb
+    environment:
+      - PMA_HOST=${DB_HOSTNAME}
+      - UPLOAD_LIMIT=1G
+      - MEMORY_LIMIT=512M
+      - MAX_EXECUTION_TIME=600
+    ports:
+      - "8080:80"
+    networks:
+      -  global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+
+volumes:
+  certbot-etc:
+    name: certbot-etc
+  certbot-var:
+    name: certbot-var
+  certbot-html:
+    name: certbot-html
+  mariadb_data:
+    name: mariadb_data
+
+networks:
+  global:
+    name: global
+    driver: bridge
