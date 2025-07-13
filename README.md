@@ -1,3 +1,7 @@
+# Docker Starter Kit
+
+Uma Stack montada para servir webapps com Nginx, PHP FPM, MariaDB.
+
 ## Instruções de Uso
 
 ### 1. Configuração Inicial
